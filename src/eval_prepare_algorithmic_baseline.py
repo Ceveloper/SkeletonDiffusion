@@ -53,7 +53,7 @@ def prepare_model(config, skeleton, silent=False, **kwargs):
     return alg_baseline, device 
 
 
-def get_prediction(obs, model, num_samples=50**, kwargs):
+def get_prediction(obs, model, num_samples=50, **kwargs):
     """
     Generate num_samples predictions from model and input obs.
     return a dict or anything that will be used by process_evaluation_pair
