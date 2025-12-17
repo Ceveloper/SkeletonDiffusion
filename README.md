@@ -22,15 +22,25 @@ Authors:
 
 ## Intro
 
-We address the task of Probabilistic 3D Human Motion Prediction: from the <b style="color: rgb(128, 143, 154);">past</b>, predict the <b style="color: rgb(46, 108, 157);">future</b>. Here is an example from AMASS:
+We address the task of Probabilistic 3D Human Motion Prediction: from the <b style="color: rgb(102, 178, 127);">past</b>, predict the <b style="color: rgb(46, 108, 157);">future</b>. Here is an example from AMASS:
 <table>
-    <tr>
-        <td><img src="./figures/example_AMASS_86_Transitions/pred_far_0_obj.gif" width="200"/></td>
-        <td><img src="./figures/example_AMASS_86_Transitions/pred_far_3_obj.gif" width="200"/></td>
-        <td><img src="./figures/example_AMASS_86_Transitions/pred_far_4_obj.gif" width="200"/></td>
-        <td><img src="./figures/example_AMASS_86_Transitions/pred_far_6_obj.gif" width="200"/></td>
-        <td><img src="./figures/example_AMASS_86_Transitions/pred_far_18_obj.gif" width="200"/></td>
-    </tr>
+  <tr>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_0_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_3_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_4_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_6_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_7_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_8_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_9_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_10_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_11_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_13_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_16_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_18_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_38_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_far_47_obj.gif" width="200"/></td>
+    <td><img src="./figures/example_AMASS_86_Transitions/obs+pred_closest_GT_obj.gif" width="200"/></td>
+  </tr>
 </table>
 
 Together with the latent diffusion model SkeletonDiffusion, we introduce a training and nonisotropic sampling paradigm for Gaussian denoising diffusion models that lifts the i.i.d. assumption and embeds connections between human body joints into the diffusion process as correlations. 
@@ -55,6 +65,9 @@ Together with the latent diffusion model SkeletonDiffusion, we introduce a train
     - [About Training Time](#about-training-time)
   - [How to Resume Training](#how-to-resume-training)
   - [Running our Implementation as Isotropic](#running-our-implementation-as-isotropic)
+- [Visualizations](#visualize-human-motions)
+- [License](#license)
+- [Citation](#citation)
 
 ## Nonisotropic Gaussian Diffusion - Plug-and-play
 In our paper SkeletonDiffusion, nonisotropic diffusion is performed extracting correlations from the adjacency matrix of the human skeleton. If you are working on a problem described by an adjacency matrix or the correlations between components of your problem (for nus human body joints) are available, you can try training your diffusion model with our nonisotropic Gaussian diffusion implementation. 
@@ -330,3 +343,31 @@ python train_diffusion.py model=isotropic_diffusion <your training arguments>
 ```
 
 For the same random initialization and environment, both trainings return exactly the same weights.
+
+## Visualize Human Motions
+
+Human motion sequences in the AMASS skeleton format can be visualized as SMPL meshes. For details, see our [AMASS-skeleton-to-SMPL](https://github.com/Ceveloper/AMASS-skeleton-to-SMPL) repository. 
+
+| Input: AMASS Skeleton | Output: SMPL Mesh |
+| :---: | :---: |
+| <img src="figures/amass_skeleton.gif" width="300"> | <img src="figures/smpl_mesh.gif" width="350"> |
+
+
+## License
+
+This project is distributed under the MIT License (see `LICENSE`).
+
+
+## Citation
+
+If you find our work or this repository useful, please cite:
+
+```bibtex
+@inproceedings{curreli2025nonisotropic,
+  title={Nonisotropic Gaussian Diffusion for Realistic 3D Human Motion Prediction},
+  author={Curreli, Cecilia and Muhle, Dominik and Saroha, Abhishek and Ye, Zhenzhang and Marin, Riccardo and Cremers, Daniel},
+  booktitle={Proceedings of the Computer Vision and Pattern Recognition Conference},
+  pages={1871--1882},
+  year={2025}
+}
+```
