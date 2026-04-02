@@ -223,13 +223,46 @@ class TrainerDiffusion(object):
     
     def loss(self, data:torch.Tensor, x_cond:torch.Tensor=None, current_epoch=None, **kwargs):
         b = data.shape[0]
-        loss, diff_weights, samples = self.model(data, x_cond=x_cond, n_train_samples=self.train_pick_best_sample_among_k)
-        if self.train_pick_best_sample_among_k > 1:
-            out_similarityspace, fut_seq_similarityspace = self.to_comparison_space_train(samples, diff_input=data,  x_cond=x_cond, space=self.similarity_space, **kwargs)
-            sim_loss, closest2gt_idx = self.get_ksimilarity_loss(loss, out_similarityspace, fut_seq_similarityspace, **kwargs)
-        else: 
-            sim_loss = loss
-        sim_loss = sim_loss * diff_weights
+        k = self.train_pick_best_sample_among_k
+
+        if k <= 1:
+            loss, diff_weights, _ = self.model(data, x_cond=x_cond, n_train_samples=1)
+            return (loss * diff_weights).mean()
+
+        # --- no_grad selection + single recompute ---
+        # Run all k candidates in no_grad (no activation storage, no backward paths).
+        # Then recompute only the b selected passes with full gradient tracking.
+        # The key: p_losses accepts noise as an explicit argument, so we pre-generate
+        # noise_k once and reuse the winning slice in the gradient pass.
+
+        # Sample one timestep per sample, shared across all k candidates.
+        t   = torch.randint(0, self.model.num_timesteps, (b,), device=data.device).long()
+        t_k = t.repeat_interleave(k, 0)  # (b*k,)
+
+        # Pre-expand inputs and generate k noise tensors (leaf tensors, no grad).
+        data_k   = data.repeat_interleave(k, 0)
+        x_cond_k = x_cond.repeat_interleave(k, 0) if x_cond is not None else None
+        noise_k  = self.model.get_white_noise(data_k)  # (b*k, ...)
+
+        # No-grad forward: run all k denoising passes, select the best per sample.
+        with torch.no_grad():
+            loss_k, diff_weigths_k, samples_k = self.model.p_losses(
+                data_k, t_k, noise=noise_k, x_cond=x_cond_k, n_train_samples=1
+            )
+            out_similarityspace, fut_seq_similarityspace = self.to_comparison_space_train(
+                samples_k, diff_input=data, x_cond=x_cond, space=self.similarity_space, **kwargs
+            )
+            _, best_idx = self.get_ksimilarity_loss(loss_k, out_similarityspace, fut_seq_similarityspace, **kwargs)
+
+        # Extract the winning noise and diffusion weight for each sample.
+        noise_sel = noise_k.view(b, k, *noise_k.shape[1:])[torch.arange(b, device=data.device), best_idx]
+        diff_weigths_sel     = diff_weigths_k.view(b, k)[torch.arange(b, device=data.device), best_idx]
+
+        # Recompute ONLY the b selected forward passes with gradient tracking.
+        sim_loss, _, _ = self.model.p_losses(
+            data, t, noise=noise_sel, x_cond=x_cond, n_train_samples=1
+        )
+        sim_loss = sim_loss * diff_weigths_sel
 
         return sim_loss.mean()
     
